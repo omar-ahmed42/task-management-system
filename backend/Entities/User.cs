@@ -18,6 +18,7 @@ public class User : IdentityUser<Guid>
     public DateOnly BirthDate{ get; set; }
 
     public void SetUsername(string email) {
+        UserName = email;
         Email = email;
     }
 }

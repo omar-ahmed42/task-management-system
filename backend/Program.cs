@@ -1,6 +1,10 @@
 using backend.Data;
+using backend.Dtos;
 using backend.Entities;
+using backend.Mappers;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
 const string URLS_ENV_KEY = "ASPNETCORE_URLS";
 const string CONNECTION_STRING_KEY = "CONNECTION_STRING";
@@ -21,7 +25,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddAuthentication()
     .AddBearerToken(IdentityConstants.BearerScheme);
 builder.Services
-    .AddIdentityCore<User>()
+    .AddIdentityCore<User>(options => options.User.RequireUniqueEmail = true)
     .AddEntityFrameworkStores<TaskManagementDbContext>()
     .AddApiEndpoints();
 
@@ -44,6 +48,54 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapIdentityApi<User>();
+app.MapPost("/api/v1/users", async (UserRegistration user, UserManager<User> userManager) =>
+{
+
+    UserMapper userMapper = new();
+
+    User userEntity = userMapper.ToUser(user);
+    userEntity.SetUsername(user.Email);
+
+    List<ErrorResponse> errors = [];
+    foreach (var validator in userManager.PasswordValidators)
+    {
+        var result = await validator.ValidateAsync(userManager, userEntity, user.Password);
+
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+            {
+                errors.Add(new ErrorResponse(error.Code, error.Description));
+            }
+        }
+    }
+
+
+    foreach (var validator in userManager.UserValidators)
+    {
+        var result = await validator.ValidateAsync(userManager, userEntity);
+
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+            {
+                if (!error.Code.Contains("UserName")) errors.Add(new ErrorResponse(error.Code, error.Description));
+            }
+        }
+    }
+
+    if (errors.Count > 0)
+    {
+        return Results.BadRequest(errors);
+    }
+
+    userEntity.PasswordHash = userManager.PasswordHasher.HashPassword(userEntity, user.Password);
+
+    await userManager.CreateAsync(userEntity);
+
+    return Results.Created();
+}).WithParameterValidation();
+
 app.MapGet("/", () => "Hello World!");
 
 app.Run();
