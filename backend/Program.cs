@@ -2,9 +2,7 @@ using backend.Data;
 using backend.Dtos;
 using backend.Entities;
 using backend.Mappers;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 
 const string URLS_ENV_KEY = "ASPNETCORE_URLS";
 const string CONNECTION_STRING_KEY = "CONNECTION_STRING";
@@ -28,7 +26,6 @@ builder.Services
     .AddIdentityCore<User>(options => options.User.RequireUniqueEmail = true)
     .AddEntityFrameworkStores<TaskManagementDbContext>()
     .AddApiEndpoints();
-
 
 string ConnectionString = "";
 if (Environment.GetEnvironmentVariable(CONNECTION_STRING_KEY) != null)
