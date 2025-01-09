@@ -134,7 +134,8 @@ namespace backend.Migrations
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("concurrency_stamp");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -162,6 +163,24 @@ namespace backend.Migrations
                         .HasFilter("[normalized_name] IS NOT NULL");
 
                     b.ToTable("roles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("cd8f322d-44b0-443f-b769-4cb303fdb6c0"),
+                            ConcurrencyStamp = "b5421663-270f-478f-ac62-cc0bddd6985f",
+                            Description = "This is a role that represents superusers/admins.",
+                            Name = "admin",
+                            NormalizedName = "ADMIN"
+                        },
+                        new
+                        {
+                            Id = new Guid("840b142e-a5ca-4607-a67e-875c1c068c75"),
+                            ConcurrencyStamp = "849db589-38e2-4a95-bb8c-5558b6eee8be",
+                            Description = "This is a role that represents regular users and team leaders.",
+                            Name = "user",
+                            NormalizedName = "USER"
+                        });
                 });
 
             modelBuilder.Entity("backend.Entities.User", b =>

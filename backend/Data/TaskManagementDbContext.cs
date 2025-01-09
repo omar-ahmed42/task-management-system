@@ -17,6 +17,7 @@ public class TaskManagementDbContext(DbContextOptions<TaskManagementDbContext> o
             b.Property(r => r.Id).HasColumnName("id");
             b.Property(r => r.NormalizedName).HasColumnName("normalized_name");
             b.Property(r => r.Name).HasColumnName("name");
+            b.Property(r => r.ConcurrencyStamp).HasColumnName("concurrency_stamp");
         });
 
         builder.Entity<User>(b =>
@@ -54,6 +55,10 @@ public class TaskManagementDbContext(DbContextOptions<TaskManagementDbContext> o
         .Ignore(u => u.LockoutEnabled)
         .Ignore(u => u.LockoutEnd);
  });
+        builder.Entity<Role>().HasData(
+            new {Id = Guid.Parse("cd8f322d-44b0-443f-b769-4cb303fdb6c0"), Name = "admin", Description = "This is a role that represents superusers/admins.", NormalizedName = "ADMIN", ConcurrencyStamp = "b5421663-270f-478f-ac62-cc0bddd6985f"},
+            new {Id = Guid.Parse("840b142e-a5ca-4607-a67e-875c1c068c75"), Name = "user", Description = "This is a role that represents regular users and team leaders.", NormalizedName = "USER", ConcurrencyStamp = "849db589-38e2-4a95-bb8c-5558b6eee8be"}
+        );
     }
 
 }

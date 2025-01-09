@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class SecurityMigration : Migration
+    public partial class SecurityAndRoleSeeding : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +21,7 @@ namespace backend.Migrations
                     description = table.Column<string>(type: "varchar(150)", unicode: false, maxLength: 150, nullable: false),
                     name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     normalized_name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    concurrency_stamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -153,6 +155,15 @@ namespace backend.Migrations
                         principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "roles",
+                columns: new[] { "id", "concurrency_stamp", "description", "name", "normalized_name" },
+                values: new object[,]
+                {
+                    { new Guid("840b142e-a5ca-4607-a67e-875c1c068c75"), "849db589-38e2-4a95-bb8c-5558b6eee8be", "This is a role that represents regular users and team leaders.", "user", "USER" },
+                    { new Guid("cd8f322d-44b0-443f-b769-4cb303fdb6c0"), "b5421663-270f-478f-ac62-cc0bddd6985f", "This is a role that represents superusers/admins.", "admin", "ADMIN" }
                 });
 
             migrationBuilder.CreateIndex(
