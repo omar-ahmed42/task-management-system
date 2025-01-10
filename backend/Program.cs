@@ -23,7 +23,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddAuthentication()
     .AddBearerToken(IdentityConstants.BearerScheme);
 builder.Services
-    .AddIdentityCore<User>(options => options.User.RequireUniqueEmail = true)
+    .AddIdentityCore<User>(options => { options.User.RequireUniqueEmail = true; options.SignIn.RequireConfirmedEmail = false; })
     .AddEntityFrameworkStores<TaskManagementDbContext>()
     .AddApiEndpoints();
 
