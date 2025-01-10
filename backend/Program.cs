@@ -3,6 +3,7 @@ using backend.Dtos;
 using backend.Entities;
 using backend.Mappers;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
 const string URLS_ENV_KEY = "ASPNETCORE_URLS";
 const string CONNECTION_STRING_KEY = "CONNECTION_STRING";
@@ -24,6 +25,7 @@ builder.Services.AddAuthentication()
     .AddBearerToken(IdentityConstants.BearerScheme);
 builder.Services
     .AddIdentityCore<User>(options => { options.User.RequireUniqueEmail = true; options.SignIn.RequireConfirmedEmail = false; })
+    .AddRoles<Role>()
     .AddEntityFrameworkStores<TaskManagementDbContext>()
     .AddApiEndpoints();
 
@@ -45,7 +47,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapIdentityApi<User>();
-app.MapPost("/api/v1/users", async (UserRegistration user, UserManager<User> userManager) =>
+app.MapPost("/api/v1/users", async (UserRegistration user, UserManager<User> userManager, RoleManager<Role> roleManager) =>
 {
 
     UserMapper userMapper = new();
@@ -86,9 +88,17 @@ app.MapPost("/api/v1/users", async (UserRegistration user, UserManager<User> use
         return Results.BadRequest(errors);
     }
 
+    var findRoleTask = roleManager.FindByIdAsync(user.roleId);
+
     userEntity.PasswordHash = userManager.PasswordHasher.HashPassword(userEntity, user.Password);
 
+    var role = await findRoleTask;
+
+    if (role == null) return Results.BadRequest(new ErrorResponse("NF_InvalidRole", "Provided role is invalid"));
+
     await userManager.CreateAsync(userEntity);
+
+    await userManager.AddToRoleAsync(userEntity, role.Name!);
 
     return Results.Created();
 }).WithParameterValidation();
