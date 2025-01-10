@@ -7,6 +7,6 @@ namespace backend.Mappers;
 [Mapper]
 public partial class UserMapper
 {
-    public partial User ToUser(UserRegistration user);
+    public partial User ToUser(UserCreation user);
 
 }

@@ -47,7 +47,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapIdentityApi<User>();
-app.MapPost("/api/v1/users", async (UserRegistration user, UserManager<User> userManager, RoleManager<Role> roleManager) =>
+app.MapPost("/api/v1/users", async (UserCreation user, UserManager<User> userManager, RoleManager<Role> roleManager) =>
 {
 
     UserMapper userMapper = new();
