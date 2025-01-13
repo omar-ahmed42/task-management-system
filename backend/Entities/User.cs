@@ -9,10 +9,10 @@ public class User : IdentityUser<Guid>
 {
 
     [Required][Column(name:"first_name")][Unicode(false)][MinLength(1)][MaxLength(50)]
-    public String FirstName{ get; set; }
+    public string FirstName{ get; set; }
 
     [Required][Column(name:"last_name")][Unicode(false)][MinLength(1)][MaxLength(50)]
-    public String LastName{ get; set; }
+    public string LastName{ get; set; }
 
     [Required][Column("birth_date")]
     public DateOnly BirthDate{ get; set; }
