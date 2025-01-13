@@ -9,4 +9,6 @@ public static partial class TaskMapper
 {
     public static partial Entities.Task ToTask(TaskCreation task);
     public static partial TaskResponse ToTaskResponse(Entities.Task task);
+
+    public static partial void MergeTask(TaskUpdateDetails taskDetails, Entities.Task task);
 }
