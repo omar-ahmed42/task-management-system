@@ -1,11 +1,13 @@
 using backend.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Task = backend.Entities.Task;
 
 namespace backend.Data;
 
 public class TaskManagementDbContext(DbContextOptions<TaskManagementDbContext> options) : IdentityDbContext<User, Role, Guid>(options)
 {
+    public DbSet<Task> Tasks => Set<Task>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
