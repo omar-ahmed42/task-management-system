@@ -22,9 +22,16 @@ public class Team
     public string Description { get; set; }
 
     [Column("leader_id")]
-    public Guid LeaderId { get; set; }
+    public Guid? LeaderId { get; set; }
 
     [ForeignKey("LeaderId")]
-    public User Leader { get; set; }
+    public User? Leader { get; set; }
 
+    [Required]
+    [Column("created_by_id")]
+    public Guid CreatedById { get; set; }
+
+    [ForeignKey("CreatedById")]
+    
+    public User? CreatedBy { get; set; }
 }
