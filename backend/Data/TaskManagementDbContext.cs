@@ -8,6 +8,7 @@ namespace backend.Data;
 public class TaskManagementDbContext(DbContextOptions<TaskManagementDbContext> options) : IdentityDbContext<User, Role, Guid>(options)
 {
     public DbSet<Task> Tasks => Set<Task>();
+    public DbSet<Team> Teams => Set<Team>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
