@@ -17,6 +17,7 @@ if (Environment.GetEnvironmentVariable(URLS_ENV_KEY) != null)
     builder.WebHost.UseUrls(urls);
 }
 
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options => {
     options.AddSecurityDefinition("oauth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme {
@@ -112,5 +113,6 @@ app.MapPost("/api/v1/users", async (UserCreation user, UserManager<User> userMan
 }).WithParameterValidation();
 
 app.MapGet("/", () => "Hello World!");
+app.MapControllers();
 
 app.Run();
