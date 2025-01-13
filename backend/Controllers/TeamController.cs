@@ -41,7 +41,7 @@ namespace backend.Controllers
             await _dbContext.Teams.AddAsync(teamEntity);
             await _dbContext.SaveChangesAsync();
 
-            return Created();
+            return CreatedAtRoute("GetTeam", new { id = teamEntity.Id }, null);
         }
 
         [HttpGet("{id}", Name = "GetTeam")]
