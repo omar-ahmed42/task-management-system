@@ -44,5 +44,35 @@ namespace backend.Controllers
             return Created();
         }
 
+        [HttpGet("{id}", Name = "GetTeam")]
+        [Authorize]
+        public async Task<ActionResult<TeamResponse>> GetTeam([FromRoute] string id)
+        {
+            Entities.Team? team = await _dbContext.Teams.FindAsync(id);
+            if (team == null) return NotFound(new ErrorResponse("TEAM_NOT_FOUND", "Team not found"));
+
+            if (!User.IsAdmin() && (team.LeaderId == null || (team.LeaderId != null && !team.LeaderId.Equals(User.GetUserId()))))
+                return StatusCode(403, new ErrorResponse("TEAM_FORBIDDEN", "You cannot access this resource"));
+
+            return Ok(TeamMapper.ToTeamResponse(team));
+        }
+
+        [HttpPut("{id:Guid}", Name = "UpdateTeam")]
+        [Authorize]
+        public async Task<ActionResult<TeamResponse>> UpdateTeam(TeamUpdate teamUpdate)
+        {
+            if (teamUpdate == null) return BadRequest(new ErrorResponse("INVALID_TEAM", "Team details cannot be empty"));
+
+            Entities.Team? team = await _dbContext.Teams.FindAsync(teamUpdate.Id);
+            if (team == null) return NotFound(new ErrorResponse("TEAM_NOT_FOUND", "Team not found"));
+
+            if (!User.IsAdmin() && (team.LeaderId == null || (team.LeaderId != null && !team.LeaderId.Equals(User.GetUserId()))))
+                return StatusCode(403, new ErrorResponse("TEAM_FORBIDDEN", "You cannot access this resource"));
+
+            TeamMapper.MergeTeam(teamUpdate.Team, team);
+            _dbContext.Update(team);
+            await _dbContext.SaveChangesAsync();
+            return Ok(TeamMapper.ToTeamResponse(team));
+        }
     }
 }
