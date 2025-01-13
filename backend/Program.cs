@@ -3,7 +3,7 @@ using backend.Dtos;
 using backend.Entities;
 using backend.Mappers;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
+using Swashbuckle.AspNetCore.Filters;
 
 const string URLS_ENV_KEY = "ASPNETCORE_URLS";
 const string CONNECTION_STRING_KEY = "CONNECTION_STRING";
@@ -58,6 +58,8 @@ app.UseHttpsRedirection();
 app.MapIdentityApi<User>();
 app.MapPost("/api/v1/users", async (UserCreation user, UserManager<User> userManager, RoleManager<Role> roleManager) =>
 {
+    // TODO: Move this to a separate controller
+    // TODO: Allow only admins to create users
 
     UserMapper userMapper = new();
 
