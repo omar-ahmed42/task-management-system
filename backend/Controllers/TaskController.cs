@@ -6,6 +6,7 @@ using backend.Mappers;
 using backend.Security.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers
 {
@@ -46,6 +47,25 @@ namespace backend.Controllers
                 return StatusCode(403, new ErrorResponse("TASK_FORBIDDEN", "You cannot access this resource"));
 
             return Ok(TaskMapper.ToTaskResponse(task));
+        }
+
+        [HttpDelete("{id}", Name = "DeleteTask")]
+        [Authorize]
+        public async Task<ActionResult> DeleteTask(string id) {
+            if (id == null)
+                return BadRequest("No task identifier provided to delete");
+
+            Entities.Task task = await _dbContext.Tasks.FindAsync(id);
+            if (task == null) return NoContent();
+
+            Guid? principalId = User.GetUserId();
+            if (!User.IsAdmin() && !principalId.Equals(task.CreatedById))
+                return StatusCode(403, new ErrorResponse("TASK_FORBIDDEN", "You cannot access this resource"));
+            
+            _dbContext.Tasks.Remove(task);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
         }
 
     }
