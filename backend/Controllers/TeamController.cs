@@ -1,6 +1,7 @@
 using backend.Data;
 using backend.Dtos;
 using backend.Dtos.Teams;
+using backend.Entities;
 using backend.Mappers;
 using backend.Security.Extensions;
 using Microsoft.AspNetCore.Authorization;
@@ -73,6 +74,16 @@ namespace backend.Controllers
             _dbContext.Update(team);
             await _dbContext.SaveChangesAsync();
             return Ok(TeamMapper.ToTeamResponse(team));
+        }
+
+        [HttpDelete("{id:Guid}", Name = "DeleteTeam")]
+        public async Task<ActionResult> DeleteTeam([FromRoute] string id)
+        {
+            if (!User.IsAdmin()) return StatusCode(403, new ErrorResponse("TEAM_FORBIDDEN", "You cannot access this resource"));
+
+            _dbContext.Remove(new Team() { Id = id });
+            await _dbContext.SaveChangesAsync();
+            return NoContent();
         }
     }
 }
