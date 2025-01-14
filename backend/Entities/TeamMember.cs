@@ -17,6 +17,9 @@ public class TeamMember
     [Column("member_id")]
     public required Guid MemberId { get; set; }
 
+    [Column("joined_at")]
+    public DateTime JoinedAt{get; set; }
+
     [ForeignKey("TeamId")]
     [DeleteBehavior(DeleteBehavior.Cascade)]
     public Team Team { get; set; }
