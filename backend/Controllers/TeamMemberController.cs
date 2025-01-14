@@ -86,13 +86,31 @@ namespace backend.Controllers
                 if (teamMember != null) return Conflict(new ErrorResponse("MEMBER_ALREADY_EXISTS", "This user is already a member of the team"));
 
                 DateTime joinedAt;
-                if (User.IsAdmin() && memberCreation.Details.JoinedAt != null) joinedAt = (DateTime) memberCreation.Details.JoinedAt;
+                if (User.IsAdmin() && memberCreation.Details.JoinedAt != null) joinedAt = (DateTime)memberCreation.Details.JoinedAt;
                 else joinedAt = DateTime.UtcNow;
 
-                teamMember = new TeamMember() { TeamId = memberCreation.TeamId, MemberId = memberCreation.Details.MemberId, JoinedAt = joinedAt};
+                teamMember = new TeamMember() { TeamId = memberCreation.TeamId, MemberId = memberCreation.Details.MemberId, JoinedAt = joinedAt };
                 await _dbContext.AddAsync(teamMember);
                 await _dbContext.SaveChangesAsync();
                 return CreatedAtRoute("GetTeamMember", new RouteValueDictionary { { "team-id", memberCreation.TeamId }, { "member-id", memberCreation.Details.MemberId } }, null);
+            }
+
+            return StatusCode(403, new ErrorResponse("TEAM_FORBID", "You cannot access this resource"));
+        }
+
+        [HttpDelete("teams/{team-id:Guid}/members/{member-id:Guid}", Name = "DeleteTeamMember")]
+        [Authorize]
+        public async Task<ActionResult> AddTeamMember([FromRoute(Name = "team-id")] string teamId, [FromRoute(Name = "member-id")] Guid memberId)
+        {
+            var team = await _dbContext.Teams.FindAsync(teamId);
+            if (team == null) return NotFound(new ErrorResponse("TEAM_NOT_FOUND", "Team not found"));
+
+            var principalId = User.GetUserId();
+            if (User.IsAdmin() || IsTeamLeader(team, principalId))
+            {
+                _dbContext.Remove(new TeamMember() { TeamId = teamId, MemberId = memberId });
+                await _dbContext.SaveChangesAsync();
+                return NoContent();
             }
 
             return StatusCode(403, new ErrorResponse("TEAM_FORBID", "You cannot access this resource"));
