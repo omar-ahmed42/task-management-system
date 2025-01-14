@@ -64,7 +64,7 @@ namespace backend.Controllers
             if (User.IsAdmin() || IsTeamLeader(team, principalId) || await IsTeamMember(teamId, principalId))
             {
 
-                var teamMember = await _dbContext.TeamsMembers.FindAsync(teamId, memberId);
+                var teamMember = await _dbContext.TeamsMembers.Include(tm => tm.Member).FirstOrDefaultAsync(tm => teamId.Equals(tm.TeamId) && memberId.Equals(tm.MemberId));
                 if (teamMember == null) return NotFound(new ErrorResponse("MEMBER_NOT_FOUND", "Team member not found"));
                 return Ok(TeamMemberMapper.ToTeamMemberDetails(teamMember));
             }
