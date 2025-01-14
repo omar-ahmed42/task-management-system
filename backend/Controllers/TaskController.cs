@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using backend.Data;
 using backend.Dtos;
 using backend.Dtos.Tasks;
@@ -6,7 +5,6 @@ using backend.Mappers;
 using backend.Security.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers
 {

@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using backend.Data;
 using backend.Dtos;
 using backend.Dtos.Teams.Members;
