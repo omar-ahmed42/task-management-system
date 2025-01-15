@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(TaskManagementDbContext))]
-    partial class TaskManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250114185648_TaskAssignmentMigration")]
+    partial class TaskAssignmentMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -225,31 +228,6 @@ namespace backend.Migrations
                     b.ToTable("tasks");
                 });
 
-            modelBuilder.Entity("backend.Entities.TaskAssignment", b =>
-                {
-                    b.Property<string>("TaskId")
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("task_id");
-
-                    b.Property<Guid>("AssigneeId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("assignee_id");
-
-                    b.Property<int>("AssigneeType")
-                        .HasMaxLength(15)
-                        .IsUnicode(false)
-                        .HasColumnType("int")
-                        .HasColumnName("assignee_type");
-
-                    b.Property<DateTime>("AssignedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("assigned_at");
-
-                    b.HasKey("TaskId", "AssigneeId", "AssigneeType");
-
-                    b.ToTable("tasks_assignments");
-                });
-
             modelBuilder.Entity("backend.Entities.Team", b =>
                 {
                     b.Property<string>("Id")
@@ -447,17 +425,6 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("CreatedBy");
-                });
-
-            modelBuilder.Entity("backend.Entities.TaskAssignment", b =>
-                {
-                    b.HasOne("backend.Entities.Task", "Task")
-                        .WithMany()
-                        .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Task");
                 });
 
             modelBuilder.Entity("backend.Entities.Team", b =>

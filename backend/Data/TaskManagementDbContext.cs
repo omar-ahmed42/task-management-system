@@ -10,6 +10,7 @@ public class TaskManagementDbContext(DbContextOptions<TaskManagementDbContext> o
     public DbSet<Task> Tasks => Set<Task>();
     public DbSet<Team> Teams => Set<Team>();
     public DbSet<TeamMember> TeamsMembers => Set<TeamMember>();
+    public DbSet<TaskAssignment> TasksAssignments => Set<TaskAssignment>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
