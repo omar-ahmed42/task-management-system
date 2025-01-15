@@ -113,14 +113,51 @@ namespace backend.Controllers
             }
             else
             {
-                Team? team = await _dbContext.Teams.FromSql($"SELECT m FROM teams_members tm INNER JOIN teams m ON tm.team_id = m.id WHERE tm.member_id = {assigneeId} AND tm.leader_id = {principalId} LIMIT 1").FirstAsync();
-                if (team == null) return StatusCode(403, new ErrorResponse("ASSIGNMENT_FORBID", "You cannot unassign this team"));
+                Team? team = await _dbContext.Teams.FromSql($"SELECT m FROM teams_members tm INNER JOIN teams m ON tm.team_id = m.id WHERE tm.member_id = {assigneeId} AND tm.leader_id = {principalId} LIMIT 1").FirstOrDefaultAsync();
+                if (team == null) return StatusCode(403, new ErrorResponse("ASSIGNMENT_FORBID", "You cannot unassign this user"));
 
                 _dbContext.TasksAssignments.Remove(new Entities.TaskAssignment() { TaskId = taskId, AssigneeId = assigneeId, AssigneeType = AssigneeType.User });
                 await _dbContext.SaveChangesAsync();
             }
 
             return NoContent();
+        }
+
+        [HttpGet("tasks/{task-id:Guid}/assignees/users/{assignee-id:Guid}", Name = "GetAssignedUser")]
+        [Authorize]
+        public async Task<ActionResult<TaskUserAssigneeDetails>> GetAssignedUser([FromRoute(Name = "task-id")] string taskId, [FromRoute(Name = "assignee-id")] Guid assigneeId)
+        {
+            Guid principalId = (Guid)User.GetUserId();
+            if (User.IsAdmin() || principalId.Equals(assigneeId))
+            {
+                TaskUserAssigneeDetails? assigneeInfo = await GetUserAssigneeDetailsAsync(taskId, assigneeId);
+                if (assigneeInfo == null) return NotFound(new ErrorResponse("ASSIGNEE_NOT_FOUND", "Assigned User not found"));
+                return Ok(assigneeInfo);
+            }
+            else
+            {
+                Team? team = await _dbContext.Teams.FromSql($"SELECT m FROM teams_members tm INNER JOIN teams m ON tm.team_id = m.id WHERE tm.member_id = {assigneeId} AND tm.leader_id = {principalId} LIMIT 1").FirstOrDefaultAsync();
+                if (team == null) return StatusCode(403, new ErrorResponse("ASSIGNMENT_FORBID", "You cannot access this resource"));
+                TaskUserAssigneeDetails? assigneeInfo = await GetUserAssigneeDetailsAsync(taskId, assigneeId);
+
+                if (assigneeInfo == null) return NotFound(new ErrorResponse("ASSIGNEE_NOT_FOUND", "Assigned User not found"));
+                return Ok(assigneeInfo);
+            }
+        }
+
+        private async Task<TaskUserAssigneeDetails?> GetUserAssigneeDetailsAsync(string taskId, Guid assigneeId)
+        {
+            return await _dbContext.TasksAssignments.Join(_dbContext.Users, (ta) => ta.AssigneeId, (u) => u.Id, (ta, u) => new
+            {
+                TaskId = ta.TaskId,
+                AssignedAt = ta.AssignedAt,
+                AssigneeType = ta.AssigneeType,
+                UserId = u.Id,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                Email = u.Email,
+            }).Where(ta => ta.TaskId == taskId && ta.AssigneeType == AssigneeType.User && ta.UserId == assigneeId)
+                            .Select(ta => new TaskUserAssigneeDetails(ta.TaskId, ta.UserId, ta.FirstName, ta.LastName, ta.Email!, ta.AssignedAt)).FirstOrDefaultAsync();
         }
     }
 }
