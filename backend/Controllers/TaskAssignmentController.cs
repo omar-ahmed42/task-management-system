@@ -159,5 +159,49 @@ namespace backend.Controllers
             }).Where(ta => ta.TaskId == taskId && ta.AssigneeType == AssigneeType.User && ta.UserId == assigneeId)
                             .Select(ta => new TaskUserAssigneeDetails(ta.TaskId, ta.UserId, ta.FirstName, ta.LastName, ta.Email!, ta.AssignedAt)).FirstOrDefaultAsync();
         }
+
+        [HttpGet("tasks/{task-id:Guid}/assignees/teams/{assignee-id:Guid}", Name = "GetAssignedTeam")]
+        [Authorize]
+        public async Task<ActionResult<TaskUserAssigneeDetails>> GetAssignedTeam([FromRoute(Name = "task-id")] string taskId, [FromRoute(Name = "assignee-id")] Guid assigneeId)
+        {
+            Guid principalId = (Guid)User.GetUserId();
+            if (User.IsAdmin())
+            {
+                var assignedTeamInfo = await _dbContext.TasksAssignments.Join(_dbContext.Teams, (ta) => ta.AssigneeId.ToString(), (t) => t.Id, (ta, t) => new
+                {
+                    TaskId = ta.TaskId,
+                    AssignedAt = ta.AssignedAt,
+                    AssigneeType = ta.AssigneeType,
+                    Id = assigneeId,
+                    Name = t.Name,
+                    Description = t.Description,
+                    LeaderId = t.LeaderId,
+                }).Where(t => t.TaskId == taskId && t.AssigneeType == AssigneeType.Team && t.Id == assigneeId)
+                .Select(t => new TaskTeamAssigneeDetails(t.TaskId, t.Id, t.Name, t.Description, t.LeaderId))
+                .FirstOrDefaultAsync();
+
+                if (assignedTeamInfo == null) return NotFound(new ErrorResponse("ASSIGNEE_NOT_FOUND", "Assigned team not found"));
+                return Ok(assignedTeamInfo);
+            }
+            else
+            {
+                var assignedTeamInfo = await _dbContext.TasksAssignments.Join(_dbContext.Teams, (ta) => ta.AssigneeId.ToString(), (t) => t.Id, (ta, t) => new
+                {
+                    TaskId = ta.TaskId,
+                    AssignedAt = ta.AssignedAt,
+                    AssigneeType = ta.AssigneeType,
+                    Id = assigneeId,
+                    Name = t.Name,
+                    Description = t.Description,
+                    LeaderId = t.LeaderId,
+                }).Join(_dbContext.TeamsMembers, (ta) => ta.Id.ToString(), (tm) => tm.TeamId, (ta, tm) => new { ta, tm.MemberId })
+                .Where(t => t.ta.TaskId == taskId && t.ta.AssigneeType == AssigneeType.Team && t.ta.Id == assigneeId && t.MemberId == principalId)
+                .Select(t => new TaskTeamAssigneeDetails(t.ta.TaskId, t.ta.Id, t.ta.Name, t.ta.Description, t.ta.LeaderId))
+                .FirstOrDefaultAsync();
+
+                if (assignedTeamInfo == null) return NotFound(new ErrorResponse("ASSIGNEE_NOT_FOUND", "Assigned team not found"));
+                return Ok(assignedTeamInfo);
+            }
+        }
     }
 }
